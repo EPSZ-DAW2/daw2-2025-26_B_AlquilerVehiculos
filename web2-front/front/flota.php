@@ -30,9 +30,9 @@ include __DIR__ . "/../vistas/header_front.php";
 
 
 $vehiculos = $vehiculos ?? [
-  ['id'=>1,'marca'=>'Toyota','modelo'=>'Yaris','categoria'=>'Compacto','precio_dia'=>35,'estado'=>'disponible','plazas'=>5,'caja'=>'Manual','img'=> $BASE_URL . '/recursos/img/car-placeholder.svg'],
-  ['id'=>2,'marca'=>'Nissan','modelo'=>'Qashqai','categoria'=>'SUV','precio_dia'=>55,'estado'=>'reservado','plazas'=>5,'caja'=>'Auto','img'=> $BASE_URL . '/recursos/img/car-placeholder.svg'],
-  ['id'=>3,'marca'=>'BMW','modelo'=>'Serie 1','categoria'=>'Lujo','precio_dia'=>79,'estado'=>'disponible','plazas'=>5,'caja'=>'Auto','img'=> $BASE_URL . '/recursos/img/car-placeholder.svg'],
+  ['id'=>1,'marca'=>'Toyota','modelo'=>'Yaris','categoria'=>'Compacto','precio_dia'=>35,'estado'=>'disponible','plazas'=>5,'caja'=>'Manual','img'=> $BASE_URL . '/recursos/img/yaris.png'],
+  ['id'=>2,'marca'=>'Nissan','modelo'=>'Qashqai','categoria'=>'SUV','precio_dia'=>55,'estado'=>'reservado','plazas'=>5,'caja'=>'Auto','img'=> $BASE_URL . '/recursos/img/nissan.png'],
+  ['id'=>3,'marca'=>'BMW','modelo'=>'Serie 1','categoria'=>'Lujo','precio_dia'=>79,'estado'=>'disponible','plazas'=>5,'caja'=>'Auto','img'=> $BASE_URL . '/recursos/img/bmw.png'],
 ];
 ?>
 

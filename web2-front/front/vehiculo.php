@@ -33,7 +33,7 @@ $vehiculo = $vehiculo ?? [
   'combustible' => 'Gasolina',
   'estado' => 'disponible', // disponible | reservado | baja
   'descripcion' => 'Vehículo ideal para ciudad, bajo consumo (texto demo).',
-  'img' => $BASE_URL . '/recursos/img/car-placeholder.svg',
+  'img' => $BASE_URL . '/recursos/img/yaris.png',
 ];
 ?>
 
@@ -51,7 +51,7 @@ $vehiculo = $vehiculo ?? [
   <section class="card">
     <div class="card-b">
       <div class="gallery">
-        <img src="<?= htmlspecialchars($vehiculo['img'] ?? ($BASE_URL.'/recursos/img/car-placeholder.svg')) ?>" alt="Vehículo">
+        <img src="<?= htmlspecialchars($vehiculo['img'] ?? ($BASE_URL.'/recursos/img/yaris.png')) ?>" alt="Vehículo">
       </div>
 
       <hr class="sep"/>

@@ -45,7 +45,7 @@ $active    = $active ?? ""; // dashboard | vehiculos | usuarios | contratos | in
   <div class="container topbar-inner">
 
     <a class="brand" href="<?= htmlspecialchars($BASE_URL) ?>/admin/dashboard.php">
-      <img src="<?= htmlspecialchars($BASE_URL) ?>/recursos/img/logo.svg" alt="Logo">
+      <img src="<?= htmlspecialchars($BASE_URL) ?>/recursos/img/logo.png" alt="Logo">
       <span>AlquilerCars · Admin</span>
     </a>
 
@@ -60,13 +60,13 @@ $active    = $active ?? ""; // dashboard | vehiculos | usuarios | contratos | in
     <div class="iconbar">
       <!-- En backend: esta ruta puede ser logout o volver al front -->
       <a class="iconbtn" href="<?= htmlspecialchars($BASE_URL) ?>/index.php">
-        <img src="<?= htmlspecialchars($BASE_URL) ?>/recursos/img/icon-user.svg" alt="Inicio">
+        <img src="<?= htmlspecialchars($BASE_URL) ?>/recursos/img/user.png" alt="Inicio">
         <span>Inicio</span>
       </a>
 
       <!-- Backend: implementar logout real -->
       <a class="iconbtn" href="<?= htmlspecialchars($BASE_URL) ?>/controladores/logout.php">
-        <img src="<?= htmlspecialchars($BASE_URL) ?>/recursos/img/icon-user.svg" alt="Salir">
+        <img src="<?= htmlspecialchars($BASE_URL) ?>/recursos/img/logout.png" alt="Salir">
         <span>Salir</span>
       </a>
     </div>
