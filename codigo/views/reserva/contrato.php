@@ -4,160 +4,150 @@ use yii\helpers\Url;
 
 /*
   ================================
-  CONEXIÓN CON BASE DE DATOS
+  INTEGRACIÓN CON BASE DE DATOS
   ================================
-  Esta vista debe recibir desde el controlador:
+  Esta vista puede funcionar en 2 modos (igual que la versión antigua):
 
-  1) $cliente (datos del usuario autenticado):
-  $cliente = [
-    'nombre' => '...',
-    'email' => '...',
-    'num_carnet_conducir' => '...'
-  ];
+  A) MODO CESTA (antes de confirmar)
+     - El backend guarda items en "cesta" (no en la vista).
 
-  2) $reserva (resumen de la reserva/contrato):
-  $reserva = [
-    'id_reserva' => 123,
-    'fecha_inicio' => '2026-01-10',
-    'fecha_fin' => '2026-01-12',
-    'estado_reserva' => 'Pendiente',
-    'coste_total' => 120.00
-  ];
+  B) MODO CONTRATO/RESERVA (ya creada)
+     - Se recibe un id (por ejemplo R-1203 o C-0001)
+     - Backend consulta BD con JOIN para obtener:
+       cliente + vehículo + fechas + importes + estado
 
-  3) $vehiculo (vehículo asociado):
-  $vehiculo = [
-    'marca' => 'Toyota',
-    'modelo' => 'Yaris',
-    'categoria' => 'Compacto',
-    'precio_dia' => 35
-  ];
+  En ambos casos mostrar resumen y acciones:
+  - Confirmar (POST)
+  - Cancelar (POST)
 
-  Tablas implicadas:
-  - reservas
-  - usuarios
-  - vehiculos
-  - categorias
-
-  NOTA PARA BD:
-  - Obtener la reserva del usuario (por id o la última pendiente).
-  - JOIN reservas -> vehiculos -> categorias y reservas -> usuarios.
-  - El coste_total debe calcularse en servidor (no fiarse del cliente).
+  NOTA:
+  - No usar $_GET en la vista. El controlador pasará $contrato.
 */
 
-// DEMO FRONTEND (para render sin BD)
-$cliente = $cliente ?? [
-  'nombre' => 'Cliente Demo',
-  'email' => 'cliente@demo.com',
-  'num_carnet_conducir' => 'X1234567',
-];
+$this->title = $this->title ?: 'Contrato / Cesta';
 
-$vehiculo = $vehiculo ?? [
-  'marca' => 'Vehículo',
-  'modelo' => 'Demo',
-  'categoria' => '---',
-  'precio_dia' => 0,
+// Demo (sin BD) -> backend lo reemplazará
+$contrato = $contrato ?? [
+  'id' => $id ?? 'C-0001',
+  'cliente' => 'Juan Pérez',
+  'email' => 'juan@email.com',
+  'carnet' => 'X1234567',
+  'vehiculo' => 'Toyota Yaris',
+  'precio_dia' => 35,
+  'inicio' => '2026-01-06',
+  'fin' => '2026-01-08',
+  'dias' => 2,
+  'subtotal' => 70,
+  'iva' => 14.7,
+  'total' => 84.7,
+  'estado' => 'pendiente'
 ];
-
-$reserva = $reserva ?? [
-  'id_reserva' => 0,
-  'fecha_inicio' => '',
-  'fecha_fin' => '',
-  'estado_reserva' => 'Pendiente',
-  'coste_total' => 0,
-];
-
-// Opcional: mostrar desglose IVA (si vuestra BD lo guarda o se calcula)
-$subtotal = $subtotal ?? null;
-$iva = $iva ?? null;
 ?>
 
 <section class="hero">
-  <h1 class="h-title">Contrato</h1>
-  <p class="h-sub">Resumen del alquiler.</p>
+  <h1 class="h-title">Contrato / Cesta</h1>
+  <p class="h-sub">Resumen del alquiler (integración con BD en backend).</p>
 </section>
 
 <section class="split">
   <section class="card">
     <div class="card-h">
-      <h3>Datos del cliente</h3>
+      <h3>Resumen</h3>
+      <span class="small">ID: <?= Html::encode($contrato['id'] ?? '-') ?></span>
     </div>
+
     <div class="card-b">
       <div class="notice">
-        <strong>Nombre:</strong> <?= Html::encode($cliente['nombre'] ?? '-') ?><br>
-        <strong>Email:</strong> <?= Html::encode($cliente['email'] ?? '-') ?><br>
-        <strong>Carnet:</strong> <?= Html::encode($cliente['num_carnet_conducir'] ?? '-') ?>
+        <strong>Cliente:</strong> <?= Html::encode($contrato['cliente'] ?? '-') ?><br/>
+        <strong>Email:</strong> <?= Html::encode($contrato['email'] ?? '-') ?><br/>
+        <strong>Carnet:</strong> <?= Html::encode($contrato['carnet'] ?? '-') ?><br/>
+        <strong>Estado:</strong> <?= Html::encode($contrato['estado'] ?? '-') ?>
       </div>
 
-      <hr class="sep">
+      <hr class="sep"/>
 
-      <h3 style="margin:0 0 10px">Vehículo</h3>
-      <div class="notice">
-        <strong><?= Html::encode(($vehiculo['marca'] ?? '').' '.($vehiculo['modelo'] ?? '')) ?></strong><br>
-        <span class="small"><?= Html::encode($vehiculo['categoria'] ?? '-') ?></span><br>
-        <span class="small">Precio/día: <?= Html::encode($vehiculo['precio_dia'] ?? 0) ?> €</span>
+      <div class="row2">
+        <div class="field">
+          <div class="label">Vehículo</div>
+          <input type="text" value="<?= Html::encode($contrato['vehiculo'] ?? '-') ?>" readonly>
+        </div>
+        <div class="field">
+          <div class="label">Precio / día</div>
+          <input type="text" value="<?= (float)($contrato['precio_dia'] ?? 0) ?>€" readonly>
+        </div>
       </div>
 
-      <hr class="sep">
+      <div class="row2">
+        <div class="field">
+          <div class="label">Inicio</div>
+          <input type="date" value="<?= Html::encode($contrato['inicio'] ?? '') ?>" readonly>
+        </div>
+        <div class="field">
+          <div class="label">Fin</div>
+          <input type="date" value="<?= Html::encode($contrato['fin'] ?? '') ?>" readonly>
+        </div>
+      </div>
 
-      <h3 style="margin:0 0 10px">Reserva</h3>
-      <table class="table">
-        <tbody>
-          <tr>
-            <th>ID Reserva</th>
-            <td><?= Html::encode($reserva['id_reserva'] ?? '-') ?></td>
-          </tr>
-          <tr>
-            <th>Inicio</th>
-            <td><?= Html::encode($reserva['fecha_inicio'] ?? '-') ?></td>
-          </tr>
-          <tr>
-            <th>Fin</th>
-            <td><?= Html::encode($reserva['fecha_fin'] ?? '-') ?></td>
-          </tr>
-          <tr>
-            <th>Estado</th>
-            <td><?= Html::encode($reserva['estado_reserva'] ?? '-') ?></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <hr class="sep">
+      <hr class="sep"/>
 
       <div class="notice">
-        <?php if ($subtotal !== null && $iva !== null): ?>
-          <strong>Subtotal:</strong> <?= Html::encode($subtotal) ?> €<br>
-          <strong>IVA:</strong> <?= Html::encode($iva) ?> €<br>
-          <strong>Total:</strong> <strong><?= Html::encode($reserva['coste_total'] ?? 0) ?> €</strong>
-        <?php else: ?>
-          <strong>Total:</strong> <strong><?= Html::encode($reserva['coste_total'] ?? 0) ?> €</strong>
-          <div class="small">En BD: si no hay subtotal/iva, basta con coste_total.</div>
-        <?php endif; ?>
+        <strong>Días:</strong> <?= (int)($contrato['dias'] ?? 0) ?><br/>
+        <strong>Subtotal:</strong> <?= (float)($contrato['subtotal'] ?? 0) ?>€<br/>
+        <strong>IVA:</strong> <?= (float)($contrato['iva'] ?? 0) ?>€<br/>
+        <strong>Total:</strong> <strong><?= (float)($contrato['total'] ?? 0) ?>€</strong>
       </div>
 
-      <div class="actions" style="margin-top:14px">
-        <a class="btn" href="<?= Url::to(['vehiculo/index']) ?>">Volver a flota</a>
-        <a class="btn good" href="<?= Url::to(['user/perfil']) ?>">Perfil</a>
-      </div>
+      <hr class="sep"/>
 
-      <p class="small" style="margin-top:10px">
-        En BD: la confirmación/cancelación de reserva se gestiona actualizando <strong>reservas.estado_reserva</strong>.
+      <p class="small">
+        En BD: el total se calcula en servidor. No confiar en valores enviados por el cliente.
       </p>
     </div>
   </section>
 
   <aside class="card">
     <div class="card-h">
-      <h3>Notas</h3>
+      <h3>Acciones</h3>
+      <span class="small">POST</span>
     </div>
+
     <div class="card-b">
       <div class="notice">
-        <strong>BD:</strong> validar disponibilidad por fechas para el mismo vehículo.<br>
-        Usar comprobación completa de solapamiento (no BETWEEN simple).
+        Confirmar registra o finaliza el contrato en base de datos.
       </div>
-      <hr class="sep">
-      <div class="small">
-        Esta pantalla es solo presentación (frontend).<br>
-        La lógica de creación/confirmación se hace en backend con modelos.
+
+      <!-- =====================================================
+           CONFIRMAR (POST)
+           En backend (BD):
+           - Validar sesión y propiedad del contrato/cesta
+           - INSERT contrato si es cesta o UPDATE si ya existe
+           - Cambiar estado a 'activa' / 'confirmada'
+           ===================================================== -->
+      <?= Html::beginForm(Url::to(['reserva/confirmar']), 'post') ?>
+        <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
+        <input type="hidden" name="id_contrato" value="<?= Html::encode($contrato['id'] ?? '') ?>">
+        <button class="btn primary" type="submit">Confirmar reserva</button>
+      <?= Html::endForm() ?>
+
+      <div style="height:10px"></div>
+
+      <!-- =====================================================
+           CANCELAR (POST)
+           En backend (BD):
+           - Si es cesta: vaciar cesta
+           - Si es contrato pendiente: UPDATE estado='cancelada'
+           ===================================================== -->
+      <?= Html::beginForm(Url::to(['reserva/cancelar']), 'post') ?>
+        <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
+        <input type="hidden" name="id_contrato" value="<?= Html::encode($contrato['id'] ?? '') ?>">
+        <button class="btn danger" type="submit">Cancelar</button>
+      <?= Html::endForm() ?>
+
+      <hr class="sep"/>
+
+      <div class="actions">
+        <a class="btn" href="<?= Html::encode(Url::to(['vehiculo/index'])) ?>">Seguir buscando</a>
+        <a class="btn good" href="<?= Html::encode(Url::to(['reserva/mis-reservas'])) ?>">Mis reservas</a>
       </div>
     </div>
   </aside>

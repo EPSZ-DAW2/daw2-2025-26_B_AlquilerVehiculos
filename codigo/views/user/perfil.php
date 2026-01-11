@@ -4,115 +4,123 @@ use yii\helpers\Url;
 
 /*
   ================================
-  CONEXIÓN CON BASE DE DATOS
+  INTEGRACIÓN CON BASE DE DATOS
   ================================
-  Esta vista debe recibir desde el controlador:
+  En backend:
+  - Obtener id del cliente desde sesión (componente de usuario).
+  - SELECT datos del cliente
+  - Pasar resultado como $cliente a la vista.
 
-  $usuario = [
-    'id_usuario' => 1,
-    'nombre' => '...',
-    'email' => '...',
-    'rol' => 'Cliente',
-    'num_carnet_conducir' => '...'
-    // (campos extra opcionales si BD los añade después)
-    // 'apellidos' => '...',
-    // 'telefono' => '...',
-    // 'dni' => '...',
-    // 'carnet_caducidad' => '...'
-  ];
+  Controlador sugerido (Yii2):
+  - GET  -> mostrar perfil
+  - POST -> actualizar perfil en BD y volver con mensaje ok/error
 
-  Tablas implicadas:
-  - usuarios
+  Mensajes:
+  - $showOk    => Datos guardados correctamente.
+  - $showError => Error al guardar los datos.
 
-  NOTA PARA BD:
-  - Esta pantalla muestra datos del usuario autenticado (por id_usuario).
-  - Si se permite edición, backend hará UPDATE con ActiveRecord.
+  NOTA:
+  - No usar $_SESSION / $_GET en la vista.
 */
 
-// DEMO FRONTEND
-$usuario = $usuario ?? [
-  'id_usuario' => 0,
-  'nombre' => 'Cliente Demo',
-  'email' => 'cliente@demo.com',
-  'rol' => 'Cliente',
-  'num_carnet_conducir' => 'X1234567',
-  'apellidos' => '',
-  'telefono' => '',
-  'dni' => '',
-  'carnet_caducidad' => '',
+$this->title = $this->title ?: 'Mi perfil';
+
+// Demo (sin BD) -> backend lo reemplazará
+$cliente = $cliente ?? [
+  'nombre' => 'Juan',
+  'apellidos' => 'Pérez',
+  'email' => 'juan@email.com',
+  'telefono' => '600123456',
+  'carnet_num' => 'X1234567',
+  'carnet_caducidad' => '2030-12-31'
 ];
+
+// Mensajes (los enviará el controlador)
+$showOk = $showOk ?? false;
+$showError = $showError ?? false;
 ?>
 
 <section class="hero">
   <h1 class="h-title">Mi perfil</h1>
-  <p class="h-sub">Datos de la cuenta.</p>
+  <p class="h-sub">Actualiza tus datos personales.</p>
 </section>
 
 <section class="grid" style="grid-template-columns:1fr;">
   <section class="card">
     <div class="card-h">
-      <h3>Información</h3>
+      <h3>Datos personales</h3>
+      <span class="small">POST</span>
     </div>
 
     <div class="card-b">
-      <div class="notice">
-        <strong>ID:</strong> <?= Html::encode($usuario['id_usuario'] ?? '-') ?><br>
-        <strong>Rol:</strong> <?= Html::encode($usuario['rol'] ?? '-') ?>
-      </div>
+      <!-- =====================================================
+           FORMULARIO ACTUALIZAR PERFIL (POST)
+           En backend:
+           - Validar sesión
+           - UPDATE cliente
+           - Redirigir con ok/error
+           ===================================================== -->
+      <?= Html::beginForm(Url::to(['user/perfil']), 'post') ?>
 
-      <hr class="sep">
+        <!-- CSRF -->
+        <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
 
-      <form>
+        <!-- id_cliente lo saca backend de sesión; este hidden es solo estructura -->
+        <?= Html::hiddenInput('id_cliente', $idCliente ?? 0) ?>
+
         <div class="row2">
           <div class="field">
             <div class="label">Nombre</div>
-            <input type="text" value="<?= Html::encode($usuario['nombre'] ?? '') ?>" disabled>
+            <input type="text" name="nombre" value="<?= Html::encode($cliente['nombre'] ?? '') ?>" required>
           </div>
           <div class="field">
             <div class="label">Apellidos</div>
-            <input type="text" value="<?= Html::encode($usuario['apellidos'] ?? '') ?>" disabled>
+            <input type="text" name="apellidos" value="<?= Html::encode($cliente['apellidos'] ?? '') ?>" required>
           </div>
         </div>
 
         <div class="row2">
           <div class="field">
             <div class="label">Email</div>
-            <input type="email" value="<?= Html::encode($usuario['email'] ?? '') ?>" disabled>
+            <input type="email" name="email" value="<?= Html::encode($cliente['email'] ?? '') ?>" required>
           </div>
           <div class="field">
             <div class="label">Teléfono</div>
-            <input type="tel" value="<?= Html::encode($usuario['telefono'] ?? '') ?>" disabled>
+            <input type="tel" name="telefono" value="<?= Html::encode($cliente['telefono'] ?? '') ?>">
           </div>
+        </div>
+
+        <hr class="sep"/>
+
+        <div class="notice">
+          <strong>Carnet de conducir</strong>
         </div>
 
         <div class="row2">
           <div class="field">
-            <div class="label">DNI</div>
-            <input type="text" value="<?= Html::encode($usuario['dni'] ?? '') ?>" disabled>
+            <div class="label">Número</div>
+            <input type="text" name="carnet_num" value="<?= Html::encode($cliente['carnet_num'] ?? '') ?>" required>
           </div>
           <div class="field">
-            <div class="label">Nº carnet conducir</div>
-            <input type="text" value="<?= Html::encode($usuario['num_carnet_conducir'] ?? '') ?>" disabled>
+            <div class="label">Caducidad</div>
+            <input type="date" name="carnet_caducidad" value="<?= Html::encode($cliente['carnet_caducidad'] ?? '') ?>" required>
           </div>
         </div>
 
-        <div class="field">
-          <div class="label">Caducidad carnet</div>
-          <input type="date" value="<?= Html::encode($usuario['carnet_caducidad'] ?? '') ?>" disabled>
+        <?php if ($showOk): ?>
+          <div class="notice">Datos guardados correctamente.</div>
+        <?php endif; ?>
+
+        <?php if ($showError): ?>
+          <div class="notice">Error al guardar los datos.</div>
+        <?php endif; ?>
+
+        <div class="actions" style="margin-top:12px">
+          <button class="btn primary" type="submit">Guardar</button>
+          <a class="btn" href="<?= Html::encode(Url::to(['reserva/mis-reservas'])) ?>">Mis reservas</a>
         </div>
 
-        <hr class="sep">
-
-        <div class="actions">
-          <a class="btn" href="<?= Url::to(['vehiculo/index']) ?>">Flota</a>
-          <a class="btn good" href="<?= Url::to(['reserva/contrato']) ?>">Contrato</a>
-          <a class="btn" href="<?= Url::to(['incidencia/index']) ?>">Incidencias</a>
-        </div>
-
-        <p class="small" style="margin-top:10px">
-          En BD: si se habilita edición, backend actualizará la tabla <strong>usuarios</strong>.
-        </p>
-      </form>
+      <?= Html::endForm() ?>
     </div>
   </section>
 </section>

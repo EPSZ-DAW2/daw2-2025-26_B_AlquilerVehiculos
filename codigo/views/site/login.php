@@ -4,54 +4,78 @@ use yii\helpers\Url;
 
 /*
   ================================
-  CONEXIÓN CON BASE DE DATOS
+  INTEGRACIÓN CON BASE DE DATOS
   ================================
-  Esta vista muestra el formulario de login.
+  Controlador sugerido: /controladores/login.php  (POST)
 
   En backend:
-  - Validar credenciales contra la tabla usuarios
-  - Crear sesión usando Yii::$app->user (NO $_SESSION)
-  - Redirigir según rol (Cliente / Admin)
+  1) Recibir email y password
+  2) Buscar usuario en BD:
+       SELECT * FROM usuarios WHERE email = ?
+  3) Verificar contraseña:
+       password_verify($password, $hash_bd)
+  4) Crear sesión (en Yii2: componente de usuario / identity):
+       Yii::$app->user->login(...)
+  5) Redirigir a flota:
+       vehiculo/index
 
-  Tabla implicada:
-  - usuarios (email, password, rol, ...)
+  Error:
+  - Mostrar error (en la versión antigua era ?error=1)
 
-  NOTA PARA BD:
-  - El password debe almacenarse cifrado (hash).
-  - La validación se hace en el modelo (no aquí).
+  NOTA:
+  - En Yii2 no usamos $_GET en la vista.
+  - El controlador debe pasar:
+      $showOk (equivalente a ?ok=1)
+      $showError (equivalente a ?error=1)
 */
+
+$this->title = 'Iniciar sesión';
+
+// Estos flags los enviará el controlador (equivalentes a ?ok y ?error del front antiguo)
+$showOk = $showOk ?? false;
+$showError = $showError ?? false;
 ?>
 
-<section class="hero">
-  <h1 class="h-title">Acceso</h1>
-  <p class="h-sub">Introduce tus credenciales.</p>
-</section>
-
-<section class="grid" style="grid-template-columns:1fr;">
-  <section class="card" style="max-width:420px;margin:auto">
+<section class="auth-wrap">
+  <section class="card">
     <div class="card-h">
-      <h3>Login</h3>
+      <h3>Iniciar sesión</h3>
+      <span class="small">Cliente</span>
     </div>
 
     <div class="card-b">
-      <form>
+      <form action="<?= Html::encode(Url::to(['site/login'])) ?>" method="post">
+        <!-- CSRF (Yii2) -->
+        <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
+
         <div class="field">
           <div class="label">Email</div>
-          <input type="email" placeholder="usuario@email.com">
+          <input type="email" name="email" placeholder="email@dominio.com" required>
         </div>
 
         <div class="field">
           <div class="label">Contraseña</div>
-          <input type="password" placeholder="********">
+          <input type="password" name="password" placeholder="••••••••" required>
         </div>
 
-        <div class="actions">
-          <button class="btn primary" disabled>Entrar</button>
-          <a class="btn" href="<?= Url::to(['site/index']) ?>">Cancelar</a>
+        <?php if ($showOk): ?>
+          <div class="notice">Cuenta creada correctamente. Ya puedes iniciar sesión.</div>
+        <?php endif; ?>
+
+        <?php if ($showError): ?>
+          <div class="notice">Error: credenciales incorrectas o usuario no existe.</div>
+        <?php endif; ?>
+
+        <div class="actions" style="margin-top:12px">
+          <button class="btn primary" type="submit">Entrar</button>
+          <a class="btn" href="<?= Html::encode(Url::to(['site/registro'])) ?>">Crear cuenta</a>
         </div>
 
-        <p class="small" style="margin-top:12px">
-          En backend: validar email/contraseña y crear sesión del usuario.
+        <hr class="sep"/>
+
+        <p class="small">
+          Backend: almacenar contraseñas con <strong>password_hash</strong>
+          y verificar con <strong>password_verify</strong>.
         </p>
       </form>
     </div>

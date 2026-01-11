@@ -1,87 +1,119 @@
 <?php
 use yii\helpers\Html;
-use yii\helpers\Url;
+
+/*
+  Migración directa desde admin/dashboard.php (antiguo).
+  - Sin session_start
+  - Sin include header_admin / footer (ya lo hace el layout admin.php)
+*/
+
+$this->title = "Admin - Dashboard";
+$this->params['active'] = 'dashboard';
 
 /*
   ================================
-  CONEXIÓN CON BASE DE DATOS
+  INTEGRACIÓN CON BASE DE DATOS
   ================================
-  Esta vista debe recibir desde el controlador:
+  El controlador (o este mismo archivo si no hay MVC) debe cargar:
 
-  $kpis = [
-    'vehiculos' => 0,
-    'usuarios' => 0,
-    'reservas_pendientes' => 0,
-    'incidencias_pendientes' => 0
-  ];
+  1) KPIs:
+     - vehiculos activos
+     - reservas del día
+     - incidencias abiertas
 
-  Tablas implicadas:
-  - vehiculos
-  - usuarios
-  - reservas
-  - multas_informes
+     Ejemplos SQL:
+       SELECT COUNT(*) FROM vehiculos WHERE historico='en_flota';
+       SELECT COUNT(*) FROM reservas WHERE fecha_inicio = CURDATE();
+       SELECT COUNT(*) FROM incidencias WHERE estado IN ('pendiente','registrado');
 
-  NOTA PARA BD:
-  - Estos valores se obtienen con COUNT() en backend usando modelos (ActiveRecord).
-  - Reservas pendientes: filtrar por estado_reserva='Pendiente' (o el estado que uséis).
-  - Incidencias pendientes: filtrar por estado='Pendiente' (o similar).
+  2) Últimas reservas:
+     SELECT r.id, c.nombre, v.marca, v.modelo, r.fecha_inicio, r.fecha_fin, r.estado
+     FROM reservas r
+     JOIN clientes c ON c.id = r.id_cliente
+     JOIN vehiculos v ON v.id = r.id_vehiculo
+     ORDER BY r.id DESC
+     LIMIT 10;
 */
 
-$kpis = $kpis ?? [
-  'vehiculos' => 0,
-  'usuarios' => 0,
-  'reservas_pendientes' => 0,
-  'incidencias_pendientes' => 0
+$kpi = $kpi ?? [
+  'vehiculos' => 42,
+  'reservas_hoy' => 7,
+  'incidencias_abiertas' => 2
+];
+
+$ultimas = $ultimas ?? [
+  ['id'=>1203,'cliente'=>'Juan Pérez','vehiculo'=>'Toyota Yaris','inicio'=>'2026-01-06','fin'=>'2026-01-08','estado'=>'activa'],
+  ['id'=>1201,'cliente'=>'María López','vehiculo'=>'BMW Serie 1','inicio'=>'2025-12-10','fin'=>'2025-12-12','estado'=>'pendiente'],
 ];
 ?>
 
 <section class="hero">
-  <h1 class="h-title">Admin • Dashboard</h1>
-  <p class="h-sub">Resumen general (solo presentación).</p>
+  <h1 class="h-title">Dashboard</h1>
+  <p class="h-sub">Resumen general del sistema (datos desde BD en versión final).</p>
 </section>
 
-<section class="grid" style="grid-template-columns:1fr;">
-  <section class="card">
-    <div class="card-h">
-      <h3>KPIs</h3>
-      <span class="small">BD</span>
-    </div>
+<div class="kpi">
+  <div class="box">
+    <h4>Vehículos en flota</h4>
+    <strong><?= (int)$kpi['vehiculos'] ?></strong>
+  </div>
+  <div class="box">
+    <h4>Reservas hoy</h4>
+    <strong><?= (int)$kpi['reservas_hoy'] ?></strong>
+  </div>
+  <div class="box">
+    <h4>Incidencias abiertas</h4>
+    <strong><?= (int)$kpi['incidencias_abiertas'] ?></strong>
+  </div>
+</div>
 
-    <div class="card-b">
-      <div class="kv">
-        <div class="box">
-          <div class="k">Vehículos</div>
-          <div class="v"><?= (int)($kpis['vehiculos'] ?? 0) ?></div>
-        </div>
-        <div class="box">
-          <div class="k">Usuarios</div>
-          <div class="v"><?= (int)($kpis['usuarios'] ?? 0) ?></div>
-        </div>
-        <div class="box">
-          <div class="k">Reservas pendientes</div>
-          <div class="v"><?= (int)($kpis['reservas_pendientes'] ?? 0) ?></div>
-        </div>
-        <div class="box">
-          <div class="k">Incidencias pendientes</div>
-          <div class="v"><?= (int)($kpis['incidencias_pendientes'] ?? 0) ?></div>
-        </div>
-      </div>
+<div style="height:14px"></div>
 
-      <hr class="sep">
+<section class="card">
+  <div class="card-h">
+    <h3>Últimas reservas</h3>
+    <span class="small">Actividad</span>
+  </div>
 
-      <div class="actions">
-        <!-- Enlaces a pantallas de admin (frontend). Si no existen aún, el backend las creará después. -->
-        <a class="btn primary" href="<?= Url::to(['admin/vehiculos']) ?>">Gestionar vehículos</a>
-        <a class="btn primary" href="<?= Url::to(['admin/usuarios']) ?>">Gestionar usuarios</a>
-        <a class="btn primary" href="<?= Url::to(['admin/contratos']) ?>">Gestionar contratos</a>
-        <a class="btn primary" href="<?= Url::to(['admin/incidencias']) ?>">Gestionar incidencias</a>
-      </div>
+  <div class="card-b" style="padding:0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Vehículo</th>
+          <th>Inicio</th>
+          <th>Fin</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
 
-      <hr class="sep">
+      <tbody>
+        <?php foreach ($ultimas as $r): ?>
+          <?php
+            $estado = $r['estado'] ?? 'pendiente';
+            $pillClass = $estado === 'activa' ? 'ok' : ($estado === 'pendiente' ? 'busy' : 'off');
+          ?>
+          <tr>
+            <td><?= (int)$r['id'] ?></td>
+            <td><?= Html::encode($r['cliente']) ?></td>
+            <td><?= Html::encode($r['vehiculo']) ?></td>
+            <td><?= Html::encode($r['inicio']) ?></td>
+            <td><?= Html::encode($r['fin']) ?></td>
+            <td>
+              <span class="pill <?= Html::encode($pillClass) ?>" style="position:static">
+                <?= Html::encode(ucfirst($estado)) ?>
+              </span>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
 
+    <div style="padding:16px">
       <p class="small">
-        Este dashboard es solo presentación. La lógica y permisos se gestionan en backend.
+        En BD: este listado se obtiene con JOIN (reservas + clientes + vehículos).
       </p>
     </div>
-  </section>
+  </div>
 </section>

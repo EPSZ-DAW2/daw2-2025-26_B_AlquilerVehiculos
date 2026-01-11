@@ -4,41 +4,34 @@ use yii\helpers\Url;
 
 /*
   ================================
-  CONEXIÓN CON BASE DE DATOS
+  INTEGRACIÓN CON BASE DE DATOS
   ================================
-  Esta vista debe recibir desde el controlador un array $incidencias.
+  En backend:
+  - Obtener id_cliente desde sesión
+  - Consultar incidencias asociadas a contratos del cliente
 
-  Estructura esperada:
-  $incidencias = [
-    [
-      'id_incidencia' => 10,
-      'id_reserva' => 25,
-      'tipo' => 'Multa',            // o 'Informe'
-      'fecha' => '2026-01-05',
-      'importe' => 120.00,
-      'estado' => 'Pendiente',      // Pendiente / Resuelta / Registrada...
-      'descripcion' => '...'        // opcional
-    ],
-    ...
-  ];
+  Ejemplo SQL:
+    SELECT i.id, i.id_contrato, i.tipo, i.fecha, i.importe, i.estado
+    FROM incidencias i
+    JOIN contratos c ON c.id = i.id_contrato
+    WHERE c.id_cliente = ?
+    ORDER BY i.fecha DESC;
 
-  Tablas implicadas:
-  - multas_informes
-  - reservas
-
-  NOTA PARA BD:
-  - Listar incidencias del usuario autenticado.
-  - Se obtiene con JOIN:
-      multas_informes -> reservas
-    filtrando por reservas.id_usuario.
+  Guardar en $incidencias (array).
 */
 
-$incidencias = $incidencias ?? []; // demo para render
+$this->title = $this->title ?: 'Incidencias';
+
+// Demo para render sin BD (el backend lo reemplazará)
+$incidencias = $incidencias ?? [
+  ['id'=>'I-2001','contrato'=>'C-0001','tipo'=>'Multa','fecha'=>'2025-12-11','importe'=>120,'estado'=>'pendiente'],
+  ['id'=>'I-1998','contrato'=>'C-0000','tipo'=>'Informe policial','fecha'=>'2025-09-03','importe'=>0,'estado'=>'registrado'],
+];
 ?>
 
 <section class="hero">
   <h1 class="h-title">Incidencias</h1>
-  <p class="h-sub">Multas e informes relacionados con tus reservas.</p>
+  <p class="h-sub">Multas e informes policiales asociados a tus contratos.</p>
 </section>
 
 <section class="grid" style="grid-template-columns:1fr;">
@@ -52,36 +45,35 @@ $incidencias = $incidencias ?? []; // demo para render
       <table class="table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Reserva</th>
+            <th>#Incidencia</th>
+            <th>#Contrato</th>
             <th>Tipo</th>
             <th>Fecha</th>
             <th>Importe</th>
             <th>Estado</th>
           </tr>
         </thead>
+
         <tbody>
           <?php if (empty($incidencias)): ?>
-            <tr>
-              <td colspan="6">No hay incidencias registradas.</td>
-            </tr>
+            <tr><td colspan="6">No hay incidencias registradas.</td></tr>
           <?php else: ?>
             <?php foreach ($incidencias as $i): ?>
               <?php
-                $estado = $i['estado'] ?? '';
-                $pillClass = 'ok';
-                if (stripos($estado, 'pend') !== false) $pillClass = 'busy';
-                if (stripos($estado, 'baja') !== false) $pillClass = 'off';
+                $estado = $i['estado'] ?? 'pendiente';
+                // Igual que el antiguo:
+                // pendiente => busy, registrado => ok, otro => off
+                $pillClass = ($estado === 'pendiente') ? 'busy' : (($estado === 'registrado') ? 'ok' : 'off');
               ?>
               <tr>
-                <td><?= Html::encode($i['id_incidencia'] ?? '-') ?></td>
-                <td><?= Html::encode($i['id_reserva'] ?? '-') ?></td>
+                <td><?= Html::encode($i['id'] ?? '-') ?></td>
+                <td><?= Html::encode($i['contrato'] ?? '-') ?></td>
                 <td><?= Html::encode($i['tipo'] ?? '-') ?></td>
                 <td><?= Html::encode($i['fecha'] ?? '-') ?></td>
-                <td><?= Html::encode($i['importe'] ?? 0) ?> €</td>
+                <td><?= (float)($i['importe'] ?? 0) ?>€</td>
                 <td>
-                  <span class="pill <?= Html::encode($pillClass) ?>" style="position:static;">
-                    <?= Html::encode($estado ?: '-') ?>
+                  <span class="pill <?= Html::encode($pillClass) ?>" style="position:static">
+                    <?= Html::encode(ucfirst($estado)) ?>
                   </span>
                 </td>
               </tr>
@@ -92,14 +84,14 @@ $incidencias = $incidencias ?? []; // demo para render
 
       <div style="padding:16px">
         <div class="actions">
-          <a class="btn" href="<?= Url::to(['vehiculo/index']) ?>">Flota</a>
-          <a class="btn good" href="<?= Url::to(['reserva/contrato']) ?>">Contrato</a>
-          <a class="btn" href="<?= Url::to(['user/perfil']) ?>">Perfil</a>
+          <a class="btn" href="<?= Html::encode(Url::to(['reserva/mis-reservas'])) ?>">Mis reservas</a>
+          <a class="btn primary" href="<?= Html::encode(Url::to(['vehiculo/index'])) ?>">Ver flota</a>
         </div>
 
-        <hr class="sep">
+        <hr class="sep"/>
+
         <p class="small">
-          En BD: JOIN <strong>multas_informes</strong> con <strong>reservas</strong> filtrando por el usuario.
+          En BD: incidencias -> contrato (FK) -> cliente (FK) para filtrar por sesión.
         </p>
       </div>
     </div>

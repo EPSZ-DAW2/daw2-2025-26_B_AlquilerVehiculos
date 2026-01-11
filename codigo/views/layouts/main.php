@@ -3,28 +3,37 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 
 /*
-  ================================
-  NOTAS (BD / PROYECTO)
-  ================================
-  - La navegación muestra enlaces según el estado de autenticación.
-  - En producción, el acceso a "Admin" debe restringirse por rol (Admin).
-  - No se usan variables globales directamente para sesión.
+  Layout basado en header_front.php (original).
+  - Mantiene estructura: topbar + brand + nav + iconbar (Mi cesta)
+  - Solo adapta:
+      * $_SESSION -> Yii::$app->user + Yii::$app->session
+      * $BASE_URL -> Url::to() / Url::to('@web/...')
+      * include header/footer -> layout Yii2
 */
 
 $this->title = $this->title ?: 'AlquilerCars';
+
+// Estado de login (antes: isset($_SESSION['usuario']))
+$isLogged = !Yii::$app->user->isGuest;
+
+// Contador cesta (antes: $_SESSION['cart_count'] ?? 0)
+$cartCount = (int)Yii::$app->session->get('cart_count', 0);
+
+// Activo del menú (antes: $active)
+$active = $this->params['active'] ?? ''; // flota | mis_reservas | incidencias | perfil | ...
 ?>
 <?php $this->beginPage(); ?>
-<!DOCTYPE html>
-<html lang="<?= Html::encode(Yii::$app->language) ?>">
+<!doctype html>
+<html lang="es">
 <head>
-  <meta charset="<?= Html::encode(Yii::$app->charset) ?>">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="<?= Html::encode(Yii::$app->charset) ?>"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <?= Html::csrfMetaTags() ?>
-
   <title><?= Html::encode($this->title) ?></title>
 
-  <!-- CSS principal (colocar app.css en /web/css/app.css) -->
-  <link rel="stylesheet" href="/css/app.css">
+  <!-- Igual que tu header_front: /css/app.css -->
+  <link rel="stylesheet" href="<?= Html::encode(Url::to('@web/css/app.css')) ?>"/>
+
   <?php $this->head(); ?>
 </head>
 <body>
@@ -32,57 +41,68 @@ $this->title = $this->title ?: 'AlquilerCars';
 
 <header class="topbar">
   <div class="container topbar-inner">
+
+    <!-- Logo (igual que header_front.php) -->
     <a class="brand" href="<?= Html::encode(Url::to(['site/index'])) ?>">
-      <!-- Logo opcional: si no existe, no pasa nada -->
-      <span class="brand-dot"></span>
+      <img src="<?= Html::encode(Url::to('@web/recursos/img/logo.png')) ?>" alt="Logo">
       <span>AlquilerCars</span>
     </a>
 
+    <!-- Menú (igual que header_front.php) -->
     <nav class="nav">
-      <a class="nav-link" href="<?= Html::encode(Url::to(['site/index'])) ?>">Inicio</a>
-      <a class="nav-link" href="<?= Html::encode(Url::to(['vehiculo/index'])) ?>">Flota</a>
+      <a class="<?= $active === 'flota' ? 'active' : '' ?>" href="<?= Html::encode(Url::to(['vehiculo/index'])) ?>">Flota</a>
 
-      <?php if (Yii::$app->user->isGuest): ?>
-        <a class="nav-link" href="<?= Html::encode(Url::to(['site/login'])) ?>">Login</a>
-      <?php else: ?>
-        <a class="nav-link" href="<?= Html::encode(Url::to(['user/perfil'])) ?>">Perfil</a>
-        <a class="nav-link" href="<?= Html::encode(Url::to(['reserva/contrato'])) ?>">Contrato</a>
-        <a class="nav-link" href="<?= Html::encode(Url::to(['incidencia/index'])) ?>">Incidencias</a>
-
-        <!-- En producción: mostrar Admin solo si rol=Admin -->
-        <a class="nav-link" href="<?= Html::encode(Url::to(['admin/dashboard'])) ?>">Admin</a>
-
-        <!-- Logout por POST (seguro) -->
-        <?= Html::beginForm(Url::to(['site/logout']), 'post', ['class' => 'logout-form']) ?>
-          <button type="submit" class="btn small">Salir</button>
-        <?= Html::endForm() ?>
+      <?php if ($isLogged): ?>
+        <a class="<?= $active === 'mis_reservas' ? 'active' : '' ?>" href="<?= Html::encode(Url::to(['reserva/mis-reservas'])) ?>">Mis reservas</a>
+        <a class="<?= $active === 'incidencias' ? 'active' : '' ?>" href="<?= Html::encode(Url::to(['incidencia/index'])) ?>">Incidencias</a>
+        <a class="<?= $active === 'perfil' ? 'active' : '' ?>" href="<?= Html::encode(Url::to(['user/perfil'])) ?>">Perfil</a>
       <?php endif; ?>
     </nav>
+
+    <!-- Acciones (igual que header_front.php) -->
+    <div class="iconbar">
+      <!-- Cesta (siempre visible) -->
+      <a class="iconbtn" href="<?= Html::encode(Url::to(['reserva/contrato'])) ?>">
+        <img src="<?= Html::encode(Url::to('@web/recursos/img/carro.png')) ?>" alt="Cesta">
+        <span>Mi cesta</span>
+        <?php if ($cartCount > 0): ?>
+          <span class="badge"><?= (int)$cartCount ?></span>
+        <?php endif; ?>
+      </a>
+
+      <?php if ($isLogged): ?>
+        <a class="iconbtn" href="<?= Html::encode(Url::to(['reserva/mis-reservas'])) ?>">
+          <img src="<?= Html::encode(Url::to('@web/recursos/img/pedido.png')) ?>" alt="Pedido">
+          <span>Pedido</span>
+        </a>
+
+        <a class="iconbtn" href="<?= Html::encode(Url::to(['user/perfil'])) ?>">
+          <img src="<?= Html::encode(Url::to('@web/recursos/img/user.png')) ?>" alt="Cuenta">
+          <span>Mi cuenta</span>
+        </a>
+
+        <!-- Logout: en tu proyecto antiguo era /controladores/logout.php -->
+        <!-- En Yii2 lo normal es POST a site/logout (controlador lo implementa backend) -->
+        <?= Html::beginForm(Url::to(['site/logout']), 'post', ['style' => 'display:inline;']) ?>
+          <button class="iconbtn" type="submit" style="border:0;background:transparent;padding:0">
+            <img src="<?= Html::encode(Url::to('@web/recursos/img/logout.png')) ?>" alt="Salir">
+            <span>Salir</span>
+          </button>
+        <?= Html::endForm() ?>
+      <?php else: ?>
+        <a class="iconbtn" href="<?= Html::encode(Url::to(['site/login'])) ?>">
+          <img src="<?= Html::encode(Url::to('@web/recursos/img/user.png')) ?>" alt="Login">
+          <span>Iniciar sesión</span>
+        </a>
+      <?php endif; ?>
+    </div>
+
   </div>
 </header>
 
-<main class="container main">
-  <!-- Mensajes -->
-  <?php if (Yii::$app->session->hasFlash('ok')): ?>
-    <div class="notice"><?= Html::encode(Yii::$app->session->getFlash('ok')) ?></div>
-  <?php endif; ?>
-  <?php if (Yii::$app->session->hasFlash('error')): ?>
-    <div class="notice"><?= Html::encode(Yii::$app->session->getFlash('error')) ?></div>
-  <?php endif; ?>
-
+<main class="container">
   <?= $content ?>
 </main>
-
-<footer class="footer">
-  <div class="container footer-inner">
-    <div class="small">
-      Proyecto Alquiler de Vehículos • DAW2
-    </div>
-    <div class="small">
-      © <?= date('Y') ?> AlquilerCars
-    </div>
-  </div>
-</footer>
 
 <?php $this->endBody(); ?>
 </body>
