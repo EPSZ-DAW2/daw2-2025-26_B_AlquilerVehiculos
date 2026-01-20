@@ -1,5 +1,7 @@
 <?php
 namespace app\controllers;
+use app\models\Contrato;
+use app\models\Reserva;
 
 use Yii;
 use yii\web\Controller;
@@ -36,7 +38,17 @@ class AdminController extends Controller
     // /index.php?r=admin/contratos
     public function actionContratos()
     {
-        return $this->render('contratos');
+        // 1. Buscamos todos los contratos en la BD
+        // Usamos 'with' para traer también los datos de la reserva, usuario y vehículo de una sola vez (más rápido)
+        $contratos = Contrato::find()
+            ->with(['reserva.usuario', 'reserva.vehiculo'])
+            ->orderBy(['id_contrato' => SORT_DESC])
+            ->all();
+
+        // 2. Enviamos los datos reales a la vista
+        return $this->render('contratos', [
+            'contratos' => $contratos
+        ]);
     }
 
     // /index.php?r=admin/incidencias
@@ -147,3 +159,4 @@ class AdminController extends Controller
         return $this->redirect(['admin/vehiculos']);
     }
 }
+
