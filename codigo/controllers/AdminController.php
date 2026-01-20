@@ -51,6 +51,49 @@ class AdminController extends Controller
         ]);
     }
 
+    public function actionFinalizarContrato($id)
+    {
+        // 1. Buscamos el contrato
+        $contrato = Contrato::findOne($id);
+        if (!$contrato) {
+            Yii::$app->session->setFlash('error', 'El contrato no existe.');
+            return $this->redirect(['admin/contratos']);
+        }
+
+        // 2. Si recibimos el formulario con los Kilómetros finales...
+        if ($this->request->isPost) {
+            $km_actuales = $this->request->post('km_final');
+            
+            // Validación básica
+            if ($km_actuales < $contrato->km_entrega) {
+                Yii::$app->session->setFlash('error', 'Error: Los Km de devolución no pueden ser inferiores a los de entrega.');
+                return $this->refresh();
+            }
+
+            try {
+                // 3. LLAMADA AL PROCEDIMIENTO ALMACENADO (Backend)
+                // Asumimos que tu compañero creó: sp_FinalizarContrato(id_contrato, km_fin, fecha_fin)
+                Yii::$app->db->createCommand("CALL sp_FinalizarContrato(:id, :km, NOW())")
+                    ->bindValues([
+                        ':id' => $contrato->id_contrato,
+                        ':km' => $km_actuales
+                    ])
+                    ->execute();
+
+                Yii::$app->session->setFlash('success', 'Contrato finalizado correctamente. Vehículo disponible.');
+                return $this->redirect(['admin/contratos']);
+
+            } catch (\Exception $e) {
+                Yii::$app->session->setFlash('error', 'Error al finalizar en BD: ' . $e->getMessage());
+            }
+        }
+
+        // 4. Si no es POST, mostramos la vista para pedir los Km
+        return $this->render('finalizar_contrato', [
+            'contrato' => $contrato
+        ]);
+    }
+    
     // /index.php?r=admin/incidencias
     public function actionIncidencias()
     {
@@ -159,4 +202,5 @@ class AdminController extends Controller
         return $this->redirect(['admin/vehiculos']);
     }
 }
+
 
