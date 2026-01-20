@@ -7,10 +7,10 @@ use yii\db\ActiveRecord;
 
 class Promocion extends ActiveRecord
 {
-    // Conecta con la tabla nueva de tu compañero
+    // Conecta con la tabla nueva 'promociones'
     public static function tableName()
     {
-        return 'promociones'; // [cite: 732]
+        return 'promociones';
     }
 
     public function rules()
@@ -18,10 +18,11 @@ class Promocion extends ActiveRecord
         return [
             [['nombre_promo', 'porcentaje_descuento'], 'required'],
             [['porcentaje_descuento'], 'number'],
-            [['es_para_estudiantes'], 'boolean'], // O integer, dependiendo de cómo lo trate Yii con MySQL
-            [['fecha_limite'], 'safe'], // 'safe' permite fechas
+            [['es_para_estudiantes'], 'integer'], 
+            [['fecha_limite'], 'safe'],
             [['codigo_descuento'], 'string', 'max' => 20],
-            [['codigo_descuento'], 'unique'], // El código no puede repetirse
+            [['codigo_descuento'], 'unique'], 
+            [['nombre_promo'], 'string', 'max' => 100],
         ];
     }
 
