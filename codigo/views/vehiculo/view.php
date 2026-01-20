@@ -119,6 +119,11 @@ $vehiculo = $vehiculo ?? [
           </div>
         </div>
 
+        <div class="field" style="margin-top: 10px;">
+            <div class="label">Código Promocional (Opcional)</div>
+            <input type="text" name="codigo_promo" placeholder="Ej. ESTUDIANTE20">
+        </div>
+      
         <div class="notice">
           En backend: calcular total en servidor:<br/>
           <strong>(fin - inicio) × precio_día</strong>
@@ -137,3 +142,4 @@ $vehiculo = $vehiculo ?? [
     </div>
   </aside>
 </section>
+
