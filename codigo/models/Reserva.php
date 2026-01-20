@@ -58,10 +58,11 @@ class Reserva extends ActiveRecord
         return $this->hasOne(Usuario::class, ['id_usuario' => 'id_usuario']);
     }
     
-    
+    // En models/Reserva.php
     public function getVehiculo()
     {
         return $this->hasOne(Vehiculo::class, ['id_vehiculo' => 'id_vehiculo']);
     }
     
+
 }
