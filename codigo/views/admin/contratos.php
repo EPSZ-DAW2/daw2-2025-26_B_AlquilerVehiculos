@@ -69,40 +69,77 @@ $contratos = $contratos ?? [
       </thead>
 
       <tbody>
-        <?php foreach ($contratos as $c): ?>
-          <?php
-            $estado = $c['estado'] ?? 'pendiente';
-            $pillClass = $estado === 'activa' ? 'ok' : ($estado === 'pendiente' ? 'busy' : 'off');
-          ?>
-          <tr>
-            <td><?= Html::encode($c['id']) ?></td>
-            <td><?= Html::encode($c['cliente']) ?></td>
-            <td><?= Html::encode($c['vehiculo']) ?></td>
-            <td><?= Html::encode($c['inicio']) ?></td>
-            <td><?= Html::encode($c['fin']) ?></td>
-            <td><?= (float)$c['total'] ?>€</td>
-            <td>
-              <span class="pill <?= Html::encode($pillClass) ?>" style="position:static">
-                <?= Html::encode(ucfirst($estado)) ?>
-              </span>
-            </td>
-            <td>
-              <!-- =================================================
-                   ACCIÓN (POST)
-                   En Yii2: apuntar a una acción del AdminController.
-                   Ejemplo: admin/contrato-estado
-                   En backend (BD):
-                   - UPDATE contratos SET estado=? WHERE id=?
-                   - Validar reglas (no activar si vehículo no disponible)
-                   ================================================= -->
-              <?= Html::beginForm(Url::to(['admin/contrato-estado']), 'post', ['style' => 'display:inline;']) ?>
-                <?= Html::hiddenInput('id_contrato', $c['id']) ?>
-                <?= Html::hiddenInput('nuevo_estado', 'cancelada') ?>
-                <button class="btn danger" type="submit">Cancelar</button>
-              <?= Html::endForm() ?>
-            </td>
-          </tr>
-        <?php endforeach; ?>
+        <?php if (empty($contratos) || is_array($contratos[0] ?? null)): ?>
+           <tr>
+               <td colspan="8" style="text-align:center; padding:20px">
+                   <?php if(empty($contratos)): ?>
+                       No hay contratos registrados en la Base de Datos.
+                   <?php else: ?>
+                       <em>Cargando datos de demostración... (Conecta el controlador para ver datos reales)</em>
+                   <?php endif; ?>
+               </td>
+           </tr>
+        <?php else: ?>
+           <?php foreach ($contratos as $c): ?>
+             <?php
+               // 1. Recuperamos relaciones con seguridad (por si se borró el usuario/coche)
+               $reserva = $c->reserva;
+               $usuario = $reserva ? $reserva->usuario : null;
+               $vehiculo = $reserva ? $reserva->vehiculo : null;
+
+               // 2. Definimos estilos según el estado (Vigente=Verde/ok, Finalizado=Gris/off)
+               $estado = $c->estado_contrato;
+               $pillClass = match($estado) {
+                   'Vigente' => 'ok',
+                   'Finalizado' => 'off',
+                   'Cancelado' => 'busy', // Usamos 'busy' para rojo/alerta
+                   default => 'off'
+               };
+             ?>
+             <tr>
+               <td><?= Html::encode($c->id_contrato) ?></td>
+
+               <td>
+                   <?php if ($usuario): ?>
+                       <?= Html::encode($usuario->nombre . ' ' . $usuario->apellidos) ?>
+                   <?php else: ?>
+                       <span style="opacity:0.5">Usuario desconocido</span>
+                   <?php endif; ?>
+               </td>
+
+               <td>
+                   <?php if ($vehiculo): ?>
+                       <?= Html::encode($vehiculo->marca . ' ' . $vehiculo->modelo) ?>
+                   <?php else: ?>
+                       <span style="opacity:0.5">Vehículo borrado</span>
+                   <?php endif; ?>
+               </td>
+
+               <td><?= $reserva ? Yii::$app->formatter->asDate($reserva->fecha_inicio, 'php:Y-m-d') : '-' ?></td>
+               <td><?= $reserva ? Yii::$app->formatter->asDate($reserva->fecha_fin, 'php:Y-m-d') : '-' ?></td>
+
+               <td><?= $reserva ? number_format($reserva->coste_total, 2) : '0.00' ?>€</td>
+
+               <td>
+                 <span class="pill <?= $pillClass ?>" style="position:static">
+                   <?= Html::encode($estado) ?>
+                 </span>
+               </td>
+
+               <td>
+                 <?php if ($estado === 'Vigente'): ?>
+                     <a href="<?= Url::to(['admin/finalizar-contrato', 'id' => $c->id_contrato]) ?>" 
+                        class="btn danger"
+                        onclick="return confirm('¿Confirmar devolución del vehículo y finalizar contrato?')">
+                        Finalizar
+                     </a>
+                 <?php else: ?>
+                     <span style="color:#999">-</span>
+                 <?php endif; ?>
+               </td>
+             </tr>
+           <?php endforeach; ?>
+        <?php endif; ?>
       </tbody>
     </table>
 
@@ -117,3 +154,4 @@ $contratos = $contratos ?? [
     </div>
   </div>
 </section>
+
