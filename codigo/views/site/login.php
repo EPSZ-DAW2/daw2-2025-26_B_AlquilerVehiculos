@@ -5,45 +5,56 @@
 /** @var app\models\LoginForm $model */
 
 use yii\bootstrap5\ActiveForm;
-use yii\bootstrap5\Html;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
-$this->title = 'Login';
-$this->params['breadcrumbs'][] = $this->title;
+$this->title = 'Iniciar Sesión';
 ?>
-<div class="site-login">
-    <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>Please fill out the following fields to login:</p>
+<div class="auth-wrap">
+		<section class="card">
+				<div class="card-h">
+						<h3>🔐 <?= Html::encode($this->title) ?></h3>
+						<span class="small">Bienvenido de nuevo</span>
+				</div>
 
-    <?php $form = ActiveForm::begin([
-        'id' => 'login-form',
-        'layout' => 'horizontal',
-        'fieldConfig' => [
-            'template' => "{label}\n{input}\n{error}",
-            'labelOptions' => ['class' => 'col-lg-1 col-form-label mr-lg-3'],
-            'inputOptions' => ['class' => 'col-lg-3 form-control'],
-            'errorOptions' => ['class' => 'col-lg-7 invalid-feedback'],
-        ],
-    ]); ?>
+				<div class="card-b">
+						<p style="color:var(--muted); margin-bottom:20px;">
+								Introduce tus credenciales para acceder al panel.
+						</p>
 
-        <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
+						<?php $form = ActiveForm::begin([
+								'id' => 'login-form',
+								'fieldConfig' => [
+										'template' => "<div class=\"field\">{label}\n{input}\n{error}</div>",
+										'labelOptions' => ['class' => 'label'],
+										'inputOptions' => ['class' => ''],
+										'errorOptions' => ['class' => 'help-block', 'style' => 'color:var(--danger)'],
+								],
+						]); ?>
 
-        <?= $form->field($model, 'password')->passwordInput() ?>
+						<?= $form->field($model, 'username')->textInput(['autofocus' => true, 'placeholder' => 'Usuario o Email']) ?>
 
-        <?= $form->field($model, 'rememberMe')->checkbox([
-            'template' => "<div class=\"offset-lg-1 col-lg-3 custom-control custom-checkbox\">{input} {label}</div>\n<div class=\"col-lg-8\">{error}</div>",
-        ]) ?>
+						<?= $form->field($model, 'password')->passwordInput(['placeholder' => 'Tu contraseña']) ?>
 
-        <div class="form-group">
-            <div class="offset-lg-1 col-lg-11">
-                <?= Html::submitButton('Login', ['class' => 'btn btn-primary', 'name' => 'login-button']) ?>
-            </div>
-        </div>
+						<?= $form->field($model, 'rememberMe')->checkbox([
+								'template' => "<div style='margin:10px 0;'>{input} <span style='color:var(--muted)'>{label}</span></div>",
+						]) ?>
 
-    <?php ActiveForm::end(); ?>
+						<div class="actions" style="margin-top: 20px;">
+								<?= Html::submitButton('Entrar', ['class' => 'btn primary', 'style' => 'width:100%']) ?>
+						</div>
 
-    <div class="offset-lg-1" style="color:#999;">
-        You may login with <strong>admin/admin</strong> or <strong>demo/demo</strong>.<br>
-        To modify the username/password, please check out the code <code>app\models\User::$users</code>.
-    </div>
+						<?php ActiveForm::end(); ?>
+
+						<hr class="sep">
+
+						<div style="text-align: center;">
+								<p class="small">¿Aún no tienes cuenta?</p>
+								<a href="<?= Url::to(['site/register']) ?>" class="btn good" style="width:100%">
+										Crear cuenta nueva
+								</a>
+						</div>
+				</div>
+		</section>
 </div>

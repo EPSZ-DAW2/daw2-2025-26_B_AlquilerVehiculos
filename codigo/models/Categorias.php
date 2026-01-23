@@ -15,45 +15,45 @@ use Yii;
  */
 class Categorias extends \yii\db\ActiveRecord
 {
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'categorias';
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public static function tableName()
+	{
+		return 'categorias';
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['nombre_grupo', 'precio_dia'], 'required'],
-            [['precio_dia'], 'number'],
-            [['nombre_grupo'], 'string', 'max' => 50],
-        ];
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function rules()
+	{
+		return [
+			[['nombre_grupo', 'precio_dia'], 'required'],
+			[['precio_dia'], 'number'],
+			[['nombre_grupo'], 'string', 'max' => 50],
+		];
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id_categoria' => 'Id Categoria',
-            'nombre_grupo' => 'Nombre Grupo',
-            'precio_dia' => 'Precio Dia',
-        ];
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function attributeLabels()
+	{
+		return [
+			'id_categoria' => 'Id Categoria',
+			'nombre_grupo' => 'Nombre Grupo',
+			'precio_dia' => 'Precio Dia',
+		];
+	}
 
-    /**
-     * Gets query for [[Vehiculos]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getVehiculos()
-    {
-        return $this->hasMany(Vehiculos::class, ['id_categoria' => 'id_categoria']);
-    }
+	/**
+	 * Gets query for [[Vehiculos]].
+	 *
+	 * @return \yii\db\ActiveQuery
+	 */
+	public function getVehiculos()
+	{
+		return $this->hasMany(Vehiculos::class, ['id_categoria' => 'id_categoria']);
+	}
 }

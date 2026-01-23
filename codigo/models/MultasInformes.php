@@ -17,50 +17,50 @@ use Yii;
  */
 class MultasInformes extends \yii\db\ActiveRecord
 {
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'multas_informes';
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public static function tableName()
+	{
+		return 'multas_informes';
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['id_reserva'], 'integer'],
-            [['descripcion', 'fecha_incidencia'], 'required'],
-            [['descripcion'], 'string'],
-            [['fecha_incidencia'], 'safe'],
-            [['importe_multa'], 'number'],
-            [['id_reserva'], 'exist', 'skipOnError' => true, 'targetClass' => Reservas::class, 'targetAttribute' => ['id_reserva' => 'id_reserva']],
-        ];
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function rules()
+	{
+		return [
+			[['id_reserva'], 'integer'],
+			[['descripcion', 'fecha_incidencia'], 'required'],
+			[['descripcion'], 'string'],
+			[['fecha_incidencia'], 'safe'],
+			[['importe_multa'], 'number'],
+			[['id_reserva'], 'exist', 'skipOnError' => true, 'targetClass' => Reservas::class, 'targetAttribute' => ['id_reserva' => 'id_reserva']],
+		];
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id_informe' => 'Id Informe',
-            'id_reserva' => 'Id Reserva',
-            'descripcion' => 'Descripcion',
-            'fecha_incidencia' => 'Fecha Incidencia',
-            'importe_multa' => 'Importe Multa',
-        ];
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function attributeLabels()
+	{
+		return [
+			'id_informe' => 'Id Informe',
+			'id_reserva' => 'Id Reserva',
+			'descripcion' => 'Descripcion',
+			'fecha_incidencia' => 'Fecha Incidencia',
+			'importe_multa' => 'Importe Multa',
+		];
+	}
 
-    /**
-     * Gets query for [[Reserva]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getReserva()
-    {
-        return $this->hasOne(Reservas::class, ['id_reserva' => 'id_reserva']);
-    }
+	/**
+	 * Gets query for [[Reserva]].
+	 *
+	 * @return \yii\db\ActiveQuery
+	 */
+	public function getReserva()
+	{
+		return $this->hasOne(Reservas::class, ['id_reserva' => 'id_reserva']);
+	}
 }

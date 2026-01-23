@@ -3,103 +3,121 @@
 namespace app\models;
 
 use Yii;
-use yii\web\IdentityInterface; // <--- OBLIGATORIO
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
 
-class Usuarios extends \yii\db\ActiveRecord implements IdentityInterface
+/**
+ * This is the model class for table "usuarios".
+ *
+ * @property int $id_usuario
+ * @property string $nombre
+ * @property string $email
+ * @property string $password
+ * @property int $edad
+ * @property string|null $rol
+ * @property string|null $dni
+ * @property int|null $menor_25
+ * @property string|null $auth_key
+ */
+class Usuarios extends ActiveRecord implements IdentityInterface
 {
-    // Nombre de la tabla
-    public static function tableName()
-    {
-        return 'usuarios';
-    }
+	const SCENARIO_PERFIL = 'perfil';
 
-    // Reglas de validación (Gii)
-    public function rules()
-    {
-        return [
-            [['nombre', 'email', 'password', 'rol'], 'required'],
-            [['rol'], 'string'],
-            [['nombre', 'email'], 'string', 'max' => 100],
-            [['password', 'access_token'], 'string', 'max' => 255],
-            [['num_carnet_conducir'], 'string', 'max' => 50],
-            [['auth_key'], 'string', 'max' => 32],
-            [['email'], 'unique'],
-        ];
-    }
+	public static function tableName()
+	{
+		return 'usuarios';
+	}
 
-    public function attributeLabels()
-    {
-        return [
-            'id_usuario' => 'ID',
-            'nombre' => 'Nombre Usuario',
-            'email' => 'Correo Electrónico',
-            'password' => 'Contraseña',
-            'rol' => 'Rol',
-            'auth_key' => 'Auth Key (Cookie)',
-        ];
-    }
+	public function rules()
+	{
+		return [
+			[['nombre', 'email', 'edad', 'dni'], 'required'],
+			[['password'], 'required', 'on' => 'default'], 
+			[['password'], 'safe', 'on' => self::SCENARIO_PERFIL],
+			[['edad', 'menor_25'], 'integer'],
+			[['rol'], 'string'],
+			[['nombre', 'email'], 'string', 'max' => 100],
+			[['password'], 'string', 'max' => 255],
+			[['dni'], 'string', 'max' => 50],
+			[['auth_key'], 'string', 'max' => 32],
+			[['email'], 'unique'],
+		];
+	}
 
-    // ==================================================
-    // LÓGICA DE LOGIN (IdentityInterface)
-    // ==================================================
+	public function attributeLabels()
+	{
+		return [
+			'id_usuario' => 'ID',
+			'nombre' => 'Nombre Completo',
+			'email' => 'Correo Electrónico',
+			'password' => 'Contraseña',
+			'edad' => 'Edad',
+			'rol' => 'Rol',
+			'dni' => 'DNI',
+			'menor_25' => '¿Es menor de 25?',
+			'auth_key' => 'Auth Key',
+		];
+	}
 
-    // 1. Buscar usuario por ID (lo usa Yii en cada recarga de página)
-    public static function findIdentity($id)
-    {
-        return static::findOne($id);
-    }
+	public function beforeSave($insert)
+	{
+		if (parent::beforeSave($insert)) {
+			
+			$this->menor_25 = ($this->edad < 25) ? 1 : 0;
 
-    // 2. Buscar por Token (Para APIs, aquí no lo usamos pero es obligatorio ponerlo)
-    public static function findIdentityByAccessToken($token, $type = null)
-    {
-        return null; 
-    }
+			if ($this->isNewRecord) {
+				$this->auth_key = \Yii::$app->security->generateRandomString();
+				
+				$this->password = \Yii::$app->security->generatePasswordHash($this->password);
+			} else {
+				if (!empty($this->password) && strlen($this->password) < 60) {
+					 $this->password = \Yii::$app->security->generatePasswordHash($this->password);
+				}
+			}
 
-    // 3. Buscar usuario por Nombre (Lo usa el Formulario de Login)
-    public static function findByUsername($username)
-    {
-        // Buscamos por 'nombre'. Si prefieres loguear con email, cambia 'nombre' por 'email'
-        return static::findOne(['nombre' => $username]);
-    }
+			return true;
+		}
+		return false;
+	}
 
-    // 4. Obtener el ID del usuario actual
-    public function getId()
-    {
-        return $this->id_usuario; // OJO: Tu clave primaria es 'id_usuario'
-    }
+	public static function findIdentity($id)
+	{
+		return static::findOne($id);
+	}
 
-    // 5. Obtener el Token (Auth Key)
-    public function getAuthKey()
-    {
-        return $this->auth_key;
-    }
+	public static function findIdentityByAccessToken($token, $type = null)
+	{
+		return static::findOne(['auth_key' => $token]);
+	}
 
-    // 6. Validar el Token (Seguridad de Cookies)
-    public function validateAuthKey($authKey)
-    {
-        return $this->getAuthKey() === $authKey;
-    }
+	public static function findByUsername($username)
+	{
+		return static::find()
+			->where(['email' => $username])
+			->orWhere(['nombre' => $username])
+			->one();
+	}
 
-    // 7. Validar Contraseña
-    public function validatePassword($password)
-    {
-        // MODO SIMPLE (Texto plano) - Para prácticas
-        return $this->password === $password;
-        
-        // MODO PRO (Encriptado) - Para el futuro
-        // return Yii::$app->security->validatePassword($password, $this->password);
-    }
-    
-    // TRUCO: Generar token automáticamente al crear un usuario o cambiar contraseña
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            if ($this->isNewRecord) {
-                // Genera un string aleatorio de seguridad
-                $this->auth_key = Yii::$app->security->generateRandomString();
-            }
-            return true;
-        }
-        return false;
-    }
+	public function getId()
+	{
+		return $this->id_usuario;
+	}
+
+	public function getAuthKey()
+	{
+		return $this->auth_key;
+	}
+
+	public function validateAuthKey($authKey)
+	{
+		return $this->getAuthKey() === $authKey;
+	}
+
+	public function validatePassword($password)
+	{
+		if (strlen($this->password) < 60) {
+			return $this->password === $password;
+		}
+		return Yii::$app->security->validatePassword($password, $this->password);
+	}
 }

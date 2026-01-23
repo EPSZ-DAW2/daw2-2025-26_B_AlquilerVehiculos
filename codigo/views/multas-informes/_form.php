@@ -10,20 +10,20 @@ use yii\widgets\ActiveForm;
 
 <div class="multas-informes-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+	<?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'id_reserva')->textInput() ?>
+	<?= $form->field($model, 'id_reserva')->textInput() ?>
 
-    <?= $form->field($model, 'descripcion')->textarea(['rows' => 6]) ?>
+	<?= $form->field($model, 'descripcion')->textarea(['rows' => 6]) ?>
 
-    <?= $form->field($model, 'fecha_incidencia')->textInput() ?>
+	<?= $form->field($model, 'fecha_incidencia')->textInput() ?>
 
-    <?= $form->field($model, 'importe_multa')->textInput(['maxlength' => true]) ?>
+	<?= $form->field($model, 'importe_multa')->textInput(['maxlength' => true]) ?>
 
-    <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
-    </div>
+	<div class="form-group">
+		<?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+	</div>
 
-    <?php ActiveForm::end(); ?>
+	<?php ActiveForm::end(); ?>
 
 </div>

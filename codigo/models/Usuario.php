@@ -19,8 +19,8 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public static function tableName()
   {
-    //*** Sustituir "TABLA_USUARIOS" por el nombre correspondiente.
-    return '{{%TABLA_USUARIOS}}';
+	//*** Sustituir "TABLA_USUARIOS" por el nombre correspondiente.
+	return '{{%TABLA_USUARIOS}}';
   }
   
   //PENDIENTE: Método "rules".
@@ -41,12 +41,12 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public static function findIdentity($id)
   {
-    $model= null;
-    
-    //Programar aquí la carga de un "Usuario" por su clave primaria.
-    if (!empty( $id)) $model= static::findOne( $id);
-    
-    return $model;
+	$model= null;
+	
+	//Programar aquí la carga de un "Usuario" por su clave primaria.
+	if (!empty( $id)) $model= static::findOne( $id);
+	
+	return $model;
   }
   
   /**
@@ -54,15 +54,15 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public static function findIdentityByAccessToken($token, $type = null)
   {
-    $model= null;
-    
-    //Programar aquí la carga de un "Usuario" por su "token" de acceso 
-    //el cual puede ser una variante de su clave primaria o similar para
-    //asegurar que sea único en la tabla correspondiente.
-    //*** Sustituir "CAMPO_TOKEN" por el nombre correspondiente.
-    if (!empty( $token)) $model= static::findOne( ['CAMPO_TOKEN'=>$token]);
-    
-    return $model;
+	$model= null;
+	
+	//Programar aquí la carga de un "Usuario" por su "token" de acceso 
+	//el cual puede ser una variante de su clave primaria o similar para
+	//asegurar que sea único en la tabla correspondiente.
+	//*** Sustituir "CAMPO_TOKEN" por el nombre correspondiente.
+	if (!empty( $token)) $model= static::findOne( ['CAMPO_TOKEN'=>$token]);
+	
+	return $model;
   }
   
   /**
@@ -70,8 +70,8 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public function getId()
   {
-    //*** Sustituir "CAMPO_CLAVE_PRIMARIA" por el nombre correspondiente.
-    return $this->CAMPO_CLAVE_PRIMARIA;
+	//*** Sustituir "CAMPO_CLAVE_PRIMARIA" por el nombre correspondiente.
+	return $this->CAMPO_CLAVE_PRIMARIA;
   }
   
   /**
@@ -79,10 +79,10 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public function getAuthKey()
   {
-    //*** Sustituir "CAMPO_CLAVE_AUTORIZACION" por el nombre correspondiente
-    //o generar un resultado en función del campo "CAMPO_CLAVE_PRIMARIA" si
-    //no se implementa un servicio web que necesite mayor seguridad.
-    return $this->CAMPO_CLAVE_AUTORIZACION;
+	//*** Sustituir "CAMPO_CLAVE_AUTORIZACION" por el nombre correspondiente
+	//o generar un resultado en función del campo "CAMPO_CLAVE_PRIMARIA" si
+	//no se implementa un servicio web que necesite mayor seguridad.
+	return $this->CAMPO_CLAVE_AUTORIZACION;
   }
   
   /**
@@ -90,7 +90,7 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public function validateAuthKey($authKey)
   {
-    return $this->getAuthKey() === $authKey;
+	return $this->getAuthKey() === $authKey;
   }
   
   //<<<---
@@ -109,21 +109,21 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public static function findByUsername($username)
   {
-    $model= null;
-    
-    //Programar aquí la carga de un "Usuario" por su "login" de usuario o similar.
-    //*** Sustituir "CAMPO_LOGIN" por el nombre correspondiente.
-    //*** Descomentar y sustituir "CAMPO_ACTIVO" por el nombre correspondiente
-    //si se utiliza un posible sistema de usuario activo o inactivo.
-    //*** Descomentar y sustituir "CAMPO_BLOQUEADO" por el nombre correspondiente
-    //si se utiliza un posible sistema de usuario bloqueado o no bloqueado.
-    if (!empty( $id)) $model= static::findOne([
-        'CAMPO_LOGIN'=>$username
-      //, 'CAMPO_ACTIVO'=>true
-      //, 'CAMPO_BLOQUEADO'=>false
-    ]);
-    
-    return $model;
+	$model= null;
+	
+	//Programar aquí la carga de un "Usuario" por su "login" de usuario o similar.
+	//*** Sustituir "CAMPO_LOGIN" por el nombre correspondiente.
+	//*** Descomentar y sustituir "CAMPO_ACTIVO" por el nombre correspondiente
+	//si se utiliza un posible sistema de usuario activo o inactivo.
+	//*** Descomentar y sustituir "CAMPO_BLOQUEADO" por el nombre correspondiente
+	//si se utiliza un posible sistema de usuario bloqueado o no bloqueado.
+	if (!empty( $id)) $model= static::findOne([
+		'CAMPO_LOGIN'=>$username
+	  //, 'CAMPO_ACTIVO'=>true
+	  //, 'CAMPO_BLOQUEADO'=>false
+	]);
+	
+	return $model;
   }
 
   /**
@@ -138,17 +138,17 @@ class Usuario extends \yii\db\ActiveRecord
    */
   public function validatePassword($password)
   {
-    //*** Sustituir "CAMPO_PASSWORD" por el nombre correspondiente.
-    //*** Si el "CAMPO_PASSWORD" está ofuscado-diversificado por alguna 
-    //función HASH se debe aplicar la función HASH a "$password" antes 
-    //de comparar, o si se usa el sistema "Security" de Yii2, se debe hacer
-    //la comparación usando sus funcionalidades.
-    return ($this->CAMPO_PASSWORD === $password);
-    /*---*-/
-    $hashPassword= ALGUNA_FUNCION_HASH( $password);
-    return ($this->CAMPO_PASSWORD === $hashPassword);
-    //---*/
-    
+	//*** Sustituir "CAMPO_PASSWORD" por el nombre correspondiente.
+	//*** Si el "CAMPO_PASSWORD" está ofuscado-diversificado por alguna 
+	//función HASH se debe aplicar la función HASH a "$password" antes 
+	//de comparar, o si se usa el sistema "Security" de Yii2, se debe hacer
+	//la comparación usando sus funcionalidades.
+	return ($this->CAMPO_PASSWORD === $password);
+	/*---*-/
+	$hashPassword= ALGUNA_FUNCION_HASH( $password);
+	return ($this->CAMPO_PASSWORD === $hashPassword);
+	//---*/
+	
   }
   
 }
